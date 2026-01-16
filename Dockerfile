@@ -12,6 +12,8 @@ COPY predict.py train.py .
 COPY templates/ ./templates
 COPY static/ ./static
 
+COPY model/ ./model/
+
 COPY model_state.pt .
 COPY binary_model_state.pt .
 

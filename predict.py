@@ -6,24 +6,15 @@ import random
 
 # Static class definitions
 CLASSES = [
-    "Anxiety",
-    "Bipolar",
-    "Depression",
-    "Normal",
-    "Personality disorder",
-    "Stress",
-    "Suicidal",
+    "Anxiety", "Bipolar", "Depression", "Normal",
+    "Personality disorder", "Stress", "Suicidal"
 ]
 
-# Binary mapping for secondary classification
 BINARY_CLASSES = ["Depression", "Suicidal"]
-
-# Indices for refinement targets in the multiclass space
-DEPR_IDX = CLASSES.index("Depression")  # 2
-SUIC_IDX = CLASSES.index("Suicidal")    # 6
+DEPR_IDX = CLASSES.index("Depression")
+SUIC_IDX = CLASSES.index("Suicidal")
 TARGET_CODES = {DEPR_IDX, SUIC_IDX}
 
-# Result messages
 ENCOURAGING_MESSAGES = {
     "Anxiety": [
         "You may be experiencing <strong>Anxiety</strong> — it's okay to take things one step at a time.",
@@ -76,12 +67,15 @@ ENCOURAGING_MESSAGES = {
     ]
 }
 
-tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
+# Load tokenizer/config from local folder (pre-bundled)
+tokenizer = AutoTokenizer.from_pretrained("./model", local_files_only=True)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+torch.set_num_threads(1)
 
 # Multi-class model
 multiclass_model = AutoModelForSequenceClassification.from_pretrained(
-    "distilbert-base-uncased", num_labels=len(CLASSES)
+    "./model", num_labels=len(CLASSES), local_files_only=True
 )
 multiclass_model.load_state_dict(torch.load("model_state.pt", map_location=device))
 multiclass_model.to(device)
@@ -90,7 +84,7 @@ trainer = Trainer(model=multiclass_model, tokenizer=tokenizer)
 
 # Binary model (Depression vs Suicidal)
 binary_model = AutoModelForSequenceClassification.from_pretrained(
-    "distilbert-base-uncased", num_labels=2
+    "./model", num_labels=2, local_files_only=True
 )
 binary_model.load_state_dict(torch.load("binary_model_state.pt", map_location=device))
 binary_model.to(device)
@@ -101,13 +95,11 @@ def predict_text(texts):
     if isinstance(texts, str):
         texts = [texts]
 
-    # Multiclass predictions
     encodings = tokenizer(texts, truncation=True, padding=True)
     ds = Dataset.from_dict(encodings)
     preds = trainer.predict(ds)
     multiclass_labels = preds.predictions.argmax(-1)
 
-    # Identify indices needing binary refinement (Depression vs Suicidal)
     refine_indices = [i for i, label in enumerate(multiclass_labels) if label in TARGET_CODES]
 
     if refine_indices:
@@ -116,7 +108,7 @@ def predict_text(texts):
         refine_ds = Dataset.from_dict(refine_encodings)
 
         binary_preds = binary_trainer.predict(refine_ds)
-        binary_labels = binary_preds.predictions.argmax(-1)  # 0 -> Depression, 1 -> Suicidal
+        binary_labels = binary_preds.predictions.argmax(-1)
 
         for j, idx in enumerate(refine_indices):
             multiclass_labels[idx] = DEPR_IDX if binary_labels[j] == 0 else SUIC_IDX
@@ -129,7 +121,7 @@ app = Flask(__name__)
 def home():
     result = None
     message = None
-    prediction = None   # <-- initialize here
+    prediction = None
     if request.method == "POST":
         message = request.form.get("message", "")
         if message:
