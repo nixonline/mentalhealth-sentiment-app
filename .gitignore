@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.log
+
+results/
+binary_results/
+*.csv
+*.tsv
+
+*.pt
+
+checkpoints/
+*.bin
