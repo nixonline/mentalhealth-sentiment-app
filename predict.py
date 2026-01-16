@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import torch
 from datasets import Dataset
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trainer
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import random
 
 # Static class definitions
@@ -80,7 +80,6 @@ multiclass_model = AutoModelForSequenceClassification.from_pretrained(
 multiclass_model.load_state_dict(torch.load("model_state.pt", map_location=device))
 multiclass_model.to(device)
 multiclass_model.eval()
-trainer = Trainer(model=multiclass_model, tokenizer=tokenizer)
 
 # Binary model (Depression vs Suicidal)
 binary_model = AutoModelForSequenceClassification.from_pretrained(
@@ -89,26 +88,28 @@ binary_model = AutoModelForSequenceClassification.from_pretrained(
 binary_model.load_state_dict(torch.load("binary_model_state.pt", map_location=device))
 binary_model.to(device)
 binary_model.eval()
-binary_trainer = Trainer(model=binary_model, tokenizer=tokenizer)
 
 def predict_text(texts):
     if isinstance(texts, str):
         texts = [texts]
 
-    encodings = tokenizer(texts, truncation=True, padding=True)
-    ds = Dataset.from_dict(encodings)
-    preds = trainer.predict(ds)
-    multiclass_labels = preds.predictions.argmax(-1)
+    encodings = tokenizer(texts, truncation=True, padding=True, return_tensors="pt")
+    encodings = {k: v.to(device) for k, v in encodings.items()}
+
+    with torch.no_grad():
+        outputs = multiclass_model(**encodings)
+        multiclass_labels = outputs.logits.argmax(-1).cpu().numpy()
 
     refine_indices = [i for i, label in enumerate(multiclass_labels) if label in TARGET_CODES]
 
     if refine_indices:
         refine_texts = [texts[i] for i in refine_indices]
-        refine_encodings = tokenizer(refine_texts, truncation=True, padding=True)
-        refine_ds = Dataset.from_dict(refine_encodings)
+        refine_encodings = tokenizer(refine_texts, truncation=True, padding=True, return_tensors="pt")
+        refine_encodings = {k: v.to(device) for k, v in refine_encodings.items()}
 
-        binary_preds = binary_trainer.predict(refine_ds)
-        binary_labels = binary_preds.predictions.argmax(-1)
+        with torch.no_grad():
+            binary_outputs = binary_model(**refine_encodings)
+            binary_labels = binary_outputs.logits.argmax(-1).cpu().numpy()
 
         for j, idx in enumerate(refine_indices):
             multiclass_labels[idx] = DEPR_IDX if binary_labels[j] == 0 else SUIC_IDX
