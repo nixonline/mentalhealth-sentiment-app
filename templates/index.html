@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mental Health Sentiment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="card">
+    <h2>How are you feeling today? 💬</h2>
+
+    <div class="subtitle">
+        Write a few words about your day. We’ll analyze the sentiment.
+    </div>
+
+    <form method="post">
+        <textarea name="message">{{ message or "It's a sunny day out here and I'm feeling enthusiastic!" }}</textarea>
+
+        <div class="result {% if not result %}hidden{% endif %} {{ label }}">
+            {{ result|safe }}
+        </div>
+
+        <button type="submit">Analyze Sentiment</button>
+    </form>
+
+    <div class="footer">
+        Your input is used only for analysis
+    </div>
+
+    <div class="social-links">
+        <a href="https://github.com/nixonline/mentalhealth-sentiment-app" target="_blank" aria-label="GitHub">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#555" viewBox="0 0 16 16">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 
+                2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 
+                0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52
+                -.01-.53.63-.01 1.08.58 1.23.82.72 1.21 
+                1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 
+                0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 
+                0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 
+                1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 
+                1.1.16 1.92.08 2.12.51.56.82 1.27.82 
+                2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 
+                1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 
+                8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+        </a>
+        <a href="https://linkedin.com/in/nikkosamson" target="_blank" aria-label="LinkedIn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#0A66C2" viewBox="0 0 16 16">
+                <path d="M1.146 0C.513 0 0 .513 0 1.146v13.708C0 
+                15.487.513 16 1.146 16h13.708c.633 0 1.146-.513 
+                1.146-1.146V1.146C16 .513 15.487 0 14.854 0H1.146zM4.943 
+                13.394H2.542V6.169h2.401v7.225zM3.743 5.184c-.837 
+                0-1.358-.554-1.358-1.248 0-.709.52-1.248 
+                1.342-1.248.822 0 1.358.539 1.358 1.248 0 
+                .694-.521 1.248-1.327 1.248h-.015zm4.908 
+                8.21H6.25V6.169h2.401v.994h.016c.32-.492.895-1.193 
+                2.165-1.193 1.576 0 2.756 1.032 2.756 
+                3.252v4.172h-2.401V9.359c0-.973-.353-1.637-1.236-1.637-.675 
+                0-1.076.448-1.252.88-.064.154-.08.37-.08.586v4.206z"/>
+            </svg>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>
