@@ -16,6 +16,6 @@ COPY model/ ./model/
 COPY model_state.pt .
 COPY binary_model_state.pt .
 
-EXPOSE 5000
+EXPOSE 8080
 
 CMD ["python", "predict.py"]
