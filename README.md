@@ -13,9 +13,25 @@ The input is a single text string (e.g., a journal entry, message, or post). The
 - Stress
 - Suicidal
 
+## Dataset
+
+The dataset used in this project is a curated collection of mental health statements compiled from various sources by Kaggle user Suchintika Sarkar.
+
+Kaggle version of the dataset: https://www.kaggle.com/datasets/suchintikasarkar/sentiment-analysis-for-mental-health
+
+## Exploratory Data Analysis
+
+- Dataset contains 52,681 usable rows with 7 labels
+- Observed class imbalance and implemented weights
+- Analyzed word counts
+
+Refer to [notebook.ipynb](https://github.com/nixonline/mentalhealth-sentiment-app/blob/main/notebook.ipynb)
+
 ## Model & Inference
 
 Model: Fine-tuned Hugging Face transformer for mental health sentiment classification.
+- The first model classifies across all categories.
+- A secondary model is then used to refine classifications for Depression and Suicidal, since these two labels share many overlapping keywords.
 
 Framework: PyTorch + Transformers
 
